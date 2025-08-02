@@ -15,11 +15,11 @@ class Computer {
     
     // === COMPONENT COMPOSITION ===
     
-    private val cpu: CPU = CPU()
     private val ram: RAM = RAM(4096)  // 4KB RAM
-    private val rom: ROM = ROM(4096)  // 4KB ROM
+    private val rom: ROM = ROM(4096)  // 4KB ROM  
     private val screen: Screen = Screen()
-    private val timer: Timer = Timer()
+    private val cpu: CPU = CPU()
+    // Note: Timer is just the CPU's T register - no separate Timer class needed
     
     // === COMPUTER STATE ===
     
@@ -32,6 +32,9 @@ class Computer {
     // Execution statistics
     private var instructionsExecuted: Long = 0
     private var lastExecutionTime: Long = System.currentTimeMillis()
+    
+    // Timer simulation - decrement at 60Hz per D5700 specification
+    private var lastTimerDecrement: Long = System.currentTimeMillis()
     
     // === INITIALIZATION ===
     
@@ -67,8 +70,14 @@ class Computer {
         }
         
         try {
-            // Update timer (60Hz simulation)
-            timer.updateTimer()
+            // Timer decrements at 60Hz as per D5700 specification: "decrements the value by 1 at 60hz (every 16ms)"
+            val currentTime = System.currentTimeMillis()
+            val timerValue = cpu.getTimerRegister()
+            
+            if (timerValue > 0 && currentTime - lastTimerDecrement >= 17) { // ~60Hz (16.67ms)
+                cpu.setTimerRegister(timerValue - 1)
+                lastTimerDecrement = currentTime
+            }
             
             // Fetch the instruction to check if it needs special handling
             val instruction = cpu.fetchInstruction()
@@ -76,6 +85,7 @@ class Computer {
             
             when (opcode) {
                 0x6 -> executeReadKeyboardInstruction(instruction)
+                0xB -> executeSetTimerInstruction(instruction)
                 0xF -> executeDrawInstruction(instruction)
                 else -> {
                     // Execute normal CPU instruction
@@ -103,10 +113,39 @@ class Computer {
         
         // Get keyboard input from queue
         val input = readKeyboard()
-        val value = if (input >= 0) input else 0 // Use 0 if no input available
         
-        cpu.setRegister(registerIndex, value)
-        cpu.incrementPC(2) // Increment PC manually since we're not using CPU.executeInstruction()
+        if (input >= 0) {
+            // Input available - store it and continue
+            cpu.setRegister(registerIndex, input)
+            cpu.incrementPC(2)
+        } else {
+            // No input available - for emulation purposes, store 0 and continue
+            // In a real system, this would pause execution
+            cpu.setRegister(registerIndex, 0)
+            cpu.incrementPC(2)
+        }
+    }
+    
+    /**
+     * Handle SET_T instruction with proper timer synchronization
+     */
+    private fun executeSetTimerInstruction(instruction: Int) {
+        val parser = InstructionParser(instruction)
+        val timerValue = parser.getByteOperand()
+        
+        // Validate the timer value
+        if (timerValue < 0 || timerValue > 0xFF) {
+            throw IllegalStateException("Program terminated: SET_T timer value out of range: $timerValue (must be 0-255)")
+        }
+        
+        // Set the CPU timer register (T register)
+        cpu.setTimerRegister(timerValue)
+        
+        // Reset timer timestamp 
+        lastTimerDecrement = System.currentTimeMillis()
+        
+        // Increment PC
+        cpu.incrementPC(2)
     }
     
     /**
@@ -119,8 +158,8 @@ class Computer {
         val columnReg = parser.getThirdOperand()
         
         val asciiChar = cpu.getRegister(asciiCharReg)
-        val row = cpu.getRegister(rowReg)
-        val column = cpu.getRegister(columnReg)
+        val row = rowReg  // Use literal coordinate value, not register reference
+        val column = columnReg  // Use literal coordinate value, not register reference
         
         // Validate parameters
         if (asciiChar > 0x7F) {
@@ -150,7 +189,7 @@ class Computer {
         isRunning = true
         println("D5700 Computer starting execution...")
         
-        val targetExecutionTimeMs = 2.0 // 500Hz = 2ms per instruction
+        val targetExecutionTimeMs = 0.1 // Much faster execution for demo purposes
         
         while (isRunning) {
             try {
@@ -186,13 +225,14 @@ class Computer {
         cpu.reset()
         ram.clear()
         screen.clear()
-        timer.reset()
+        // Timer is just CPU's T register - reset via cpu.reset()
         
         // Reset computer state
         isRunning = false
         instructionsExecuted = 0
         keyboardInputQueue.clear()
         lastExecutionTime = System.currentTimeMillis()
+        lastTimerDecrement = System.currentTimeMillis()
         
         println("D5700 Computer reset")
     }
@@ -223,13 +263,12 @@ class Computer {
     }
     
     /**
-     * Set the timer value
+     * Set the timer value (T register)
      * @param value new timer value (0-255)
      */
     fun setTimerValue(value: Int) {
-        timer.setTime(value)
-        // Also update the CPU's timer register to keep them synchronized
         cpu.setTimerRegister(value)
+        lastTimerDecrement = System.currentTimeMillis()
     }
     
     /**
@@ -280,11 +319,11 @@ class Computer {
     }
     
     /**
-     * Get the current timer value
+     * Get the current timer value (T register)
      * @return current timer value (0-255)
      */
     fun getTimerValue(): Int {
-        return timer.getTime()
+        return cpu.getTimerRegister()
     }
     
     /**
@@ -344,7 +383,7 @@ class Computer {
         sb.append("\n")
         sb.append(cpu.getStateString())
         sb.append("\n\n")
-        sb.append(timer.toString())
+        sb.append("Timer (T register): ${cpu.getTimerRegister()}")
         sb.append("\n\n")
         sb.append("Screen Output:\n")
         sb.append(screen.getDisplay())

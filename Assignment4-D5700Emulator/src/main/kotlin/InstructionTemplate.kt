@@ -11,7 +11,7 @@ abstract class InstructionTemplate(protected val instruction: Int) {
     
     // Parsed instruction components
     protected lateinit var parser: InstructionParser
-    protected var opcode: Int = 0
+    protected var instructionOpcode: Int = 0
     protected var operand1: Int = 0
     protected var operand2: Int = 0
     protected var operand3: Int = 0
@@ -42,7 +42,7 @@ abstract class InstructionTemplate(protected val instruction: Int) {
      */
     protected open fun parseInstruction() {
         parser = InstructionParser(instruction)
-        opcode = parser.getOperation()
+        instructionOpcode = parser.getOperation()
         operand1 = parser.getFirstOperand()
         operand2 = parser.getSecondOperand()
         operand3 = parser.getThirdOperand()
@@ -96,7 +96,7 @@ abstract class InstructionTemplate(protected val instruction: Int) {
     /**
      * Get the instruction opcode
      */
-    fun getOpcode(): Int = opcode
+    fun getOpcode(): Int = instructionOpcode
     
     /**
      * Get the raw instruction value

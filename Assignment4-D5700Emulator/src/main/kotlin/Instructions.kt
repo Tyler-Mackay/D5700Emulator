@@ -103,7 +103,11 @@ class InstructionFactory {
 class StoreInstruction(instruction: Int) : InstructionTemplate(instruction) {
     
     override fun validateOperands() {
-        super.validateOperands()
+        // Only validate operand1 as a register index for STORE instruction
+        // operand2 and operand3 are part of the byte value, not registers
+        if (operand1 > 7) {
+            throw IllegalArgumentException("Invalid register index: r$operand1")
+        }
         // Byte operand is automatically validated by parser (0-255)
     }
     
@@ -349,10 +353,12 @@ class SetAInstruction(instruction: Int) : InstructionTemplate(instruction) {
 class SetTInstruction(instruction: Int) : InstructionTemplate(instruction) {
     
     override fun validateOperands() {
-        super.validateOperands()
+        // For SET_T instruction format (B, bb, 0), operand1 and operand2 are part of the byte value
+        // Only validate that operand3 is 0 as specified in the format
         if (operand3 != 0) {
             throw IllegalArgumentException("SET_T instruction format error: operand 3 must be 0")
         }
+        // byteOperand is automatically validated by parser (0-255)
     }
     
     override fun performOperation(cpu: CPU) {
@@ -442,16 +448,25 @@ class ConvertByteToAsciiInstruction(instruction: Int) : InstructionTemplate(inst
 }
 
 /**
- * DRAW - Draws the ASCII character for the byte stored in rX at row rY, column rZ to the screen
- * Format: (F, rX, rY, rZ)
- * Example: F123 draws the ASCII character stored in r1 at row r2 and column r3
+ * DRAW - Draws the ASCII character for the byte stored in rX at literal row and column coordinates
+ * Format: (F, rX, row, column)
+ * Example: F123 draws the ASCII character stored in r1 at row 2, column 3
  */
 class DrawInstruction(instruction: Int) : InstructionTemplate(instruction) {
     
+    override fun validateOperands() {
+        // Only validate operand1 as a register index for DRAW instruction
+        // operand2 and operand3 are literal coordinates (0-7), not registers
+        if (operand1 > 7) {
+            throw IllegalArgumentException("Invalid register index: r$operand1")
+        }
+        // Coordinates are validated in performOperation
+    }
+    
     override fun performOperation(cpu: CPU) {
         val asciiChar = cpu.getRegister(operand1)
-        val row = cpu.getRegister(operand2)
-        val column = cpu.getRegister(operand3)
+        val row = operand2  // Use literal coordinate value, not register reference
+        val column = operand3  // Use literal coordinate value, not register reference
         
         if (asciiChar > 0x7F) {
             throw IllegalStateException("Program terminated: DRAW ASCII character out of range: $asciiChar (must be 0-127)")

@@ -19,7 +19,12 @@ tasks.test {
 }
 
 application {
-    mainClass.set("InstructionDemoKt")
+    mainClass.set("D5700EmulatorKt")
+}
+
+// Configure the run task to properly handle console input
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }
 
 java {

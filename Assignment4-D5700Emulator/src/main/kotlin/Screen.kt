@@ -198,4 +198,29 @@ class Screen {
         }
         return sb.toString()
     }
+    
+    /**
+     * Get formatted display for D5700 emulator using # for blank spaces
+     * @return 8x8 grid with # characters for spaces
+     */
+    fun getFormattedDisplay(): String {
+        val sb = StringBuilder()
+        for (row in 0 until SCREEN_HEIGHT) {
+            for (column in 0 until SCREEN_WIDTH) {
+                val address = row * SCREEN_WIDTH + column
+                val asciiValue = frameBuffer[address].toInt() and 0xFF
+                
+                val char = when {
+                    asciiValue == 0x20 || asciiValue == 0x00 -> '#' // Use # for spaces and null chars
+                    asciiValue in 33..126 -> asciiValue.toChar() // Printable ASCII characters
+                    else -> '#' // Use # for non-printable characters
+                }
+                sb.append(char)
+            }
+            if (row < SCREEN_HEIGHT - 1) {
+                sb.append('\n')
+            }
+        }
+        return sb.toString()
+    }
 }
