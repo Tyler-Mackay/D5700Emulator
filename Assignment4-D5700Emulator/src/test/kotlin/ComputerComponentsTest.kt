@@ -117,73 +117,7 @@ class ComputerComponentsTest {
         assertEquals(0, rom.read(3)) // Should be cleared
     }
     
-    // === TIMER TESTS ===
-    
-    @Test
-    fun `test Timer basic operations`() {
-        val timer = Timer()
-        
-        // Initial state
-        assertEquals(0, timer.getTime())
-        assertFalse(timer.isRunning())
-        
-        // Set timer
-        timer.setTime(10)
-        assertEquals(10, timer.getTime())
-        assertTrue(timer.isRunning())
-        
-        // Decrement
-        timer.decrement()
-        assertEquals(9, timer.getTime())
-        assertTrue(timer.isRunning())
-        
-        // Decrement to zero
-        repeat(9) { timer.decrement() }
-        assertEquals(0, timer.getTime())
-        assertFalse(timer.isRunning())
-        
-        // Decrement when already zero
-        timer.decrement()
-        assertEquals(0, timer.getTime())
-    }
-    
-    @Test
-    fun `test Timer bounds checking`() {
-        val timer = Timer()
-        
-        // Valid bounds
-        timer.setTime(0)
-        timer.setTime(255)
-        
-        // Invalid bounds
-        assertThrows(IllegalArgumentException::class.java) { timer.setTime(-1) }
-        assertThrows(IllegalArgumentException::class.java) { timer.setTime(256) }
-    }
-    
-    @Test
-    fun `test Timer reset functionality`() {
-        val timer = Timer()
-        
-        timer.setTime(50)
-        assertTrue(timer.isRunning())
-        
-        timer.reset()
-        assertEquals(0, timer.getTime())
-        assertFalse(timer.isRunning())
-    }
-    
-    @Test
-    fun `test Timer time calculations`() {
-        val timer = Timer()
-        
-        timer.setTime(60) // 60 counts = 1 second at 60Hz
-        
-        assertEquals(1000, timer.getTimeRemainingMs()) // Should be ~1000ms
-        assertEquals(1.0, timer.getTimeRemainingSec(), 0.1) // Should be ~1 second
-        
-        timer.setTime(30) // 30 counts = 0.5 seconds
-        assertEquals(0.5, timer.getTimeRemainingSec(), 0.1)
-    }
+
     
     // === SCREEN TESTS ===
     

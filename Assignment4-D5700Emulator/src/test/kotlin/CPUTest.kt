@@ -176,29 +176,7 @@ class CPUTest {
         }
     }
     
-    @Test
-    fun `test timer decrement functionality`() {
-        // Test normal decrement
-        cpu.setTimerRegister(5)
-        cpu.decrementTimer()
-        assertEquals(4, cpu.getTimerRegister())
-        
-        cpu.decrementTimer()
-        assertEquals(3, cpu.getTimerRegister())
-        
-        // Test that timer doesn't go below 0
-        cpu.setTimerRegister(1)
-        cpu.decrementTimer()
-        assertEquals(0, cpu.getTimerRegister())
-        
-        cpu.decrementTimer() // Should stay at 0
-        assertEquals(0, cpu.getTimerRegister())
-        
-        // Test decrement when already 0
-        cpu.setTimerRegister(0)
-        cpu.decrementTimer()
-        assertEquals(0, cpu.getTimerRegister())
-    }
+
     
     // === MEMORY FLAG TESTS ===
     

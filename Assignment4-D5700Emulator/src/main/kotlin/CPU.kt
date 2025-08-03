@@ -194,15 +194,7 @@ class CPU {
         timerRegister = value
     }
     
-    /**
-     * Decrements the timer register by 1 if not already 0
-     * Called at 60Hz by the system timer
-     */
-    fun decrementTimer() {
-        if (timerRegister > 0) {
-            timerRegister--
-        }
-    }
+
     
     // === MEMORY FLAG METHODS ===
     
