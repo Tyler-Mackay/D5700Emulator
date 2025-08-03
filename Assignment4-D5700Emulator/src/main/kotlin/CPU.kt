@@ -77,7 +77,7 @@ class CPU {
         
         // Check if we can read 2 bytes (current PC and PC+1)
         if (programCounter >= rom.size - 1) {
-            throw IllegalStateException("Program counter out of bounds: $programCounter (ROM size: ${rom.size})")
+            throw IllegalStateException("Program terminated: reached end of ROM at PC $programCounter")
         }
         
         // Read 2 bytes from ROM and combine into 16-bit instruction

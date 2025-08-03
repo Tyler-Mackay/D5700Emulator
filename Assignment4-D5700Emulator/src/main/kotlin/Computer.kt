@@ -25,6 +25,9 @@ class Computer {
     
     private var isRunning: Boolean = false
     private var programLoaded: Boolean = false
+    private var programSize: Int = 0
+    private var executionStarted: Boolean = false
+    private var hasTerminated: Boolean = false
     
     // Keyboard input simulation (simple queue)
     private val keyboardInputQueue = mutableListOf<Int>()
@@ -52,6 +55,7 @@ class Computer {
     fun loadROM(data: IntArray) {
         rom.loadProgram(data)
         programLoaded = true
+        programSize = data.size
         
         // Reset computer state when new program is loaded
         reset()
@@ -69,7 +73,29 @@ class Computer {
             throw IllegalStateException("No program loaded in ROM")
         }
         
+        // If program has already terminated, don't execute any more instructions
+        if (hasTerminated) {
+            return
+        }
+        
         try {
+            // Mark that execution has started (for termination detection)
+            if (!executionStarted) {
+                executionStarted = true
+            }
+            
+            // Check for program termination condition: PC == 0 after execution started
+            if (executionStarted && cpu.getPC() == 0 && instructionsExecuted > 0) {
+                hasTerminated = true
+                throw IllegalStateException("Program terminated: PC reached 0")
+            }
+            
+            // Check if PC is beyond the loaded program size
+            if (cpu.getPC() >= programSize) {
+                hasTerminated = true
+                throw IllegalStateException("Program terminated: PC beyond program bounds (PC: ${cpu.getPC()}, Program size: $programSize)")
+            }
+            
             // Timer decrements at 60Hz as per D5700 specification: "decrements the value by 1 at 60hz (every 16ms)"
             val currentTime = System.currentTimeMillis()
             val timerValue = cpu.getTimerRegister()
@@ -98,9 +124,16 @@ class Computer {
             lastExecutionTime = System.currentTimeMillis()
             
         } catch (e: Exception) {
-            println("Execution error: ${e.message}")
-            isRunning = false
-            throw e
+            val message = e.message ?: "Unknown error"
+            if (message.contains("Program terminated:")) {
+                println("Program execution completed successfully.")
+                isRunning = false
+                // Don't rethrow for normal program termination
+            } else {
+                println("Execution error: $message")
+                isRunning = false
+                throw e
+            }
         }
     }
     
@@ -111,17 +144,43 @@ class Computer {
         val parser = InstructionParser(instruction)
         val registerIndex = parser.getFirstOperand()
         
-        // Get keyboard input from queue
-        val input = readKeyboard()
+        // Check if we have queued input first
+        val queuedInput = readKeyboard()
         
-        if (input >= 0) {
-            // Input available - store it and continue
-            cpu.setRegister(registerIndex, input)
+        if (queuedInput >= 0) {
+            // Input available from queue - store it and continue
+            cpu.setRegister(registerIndex, queuedInput)
             cpu.incrementPC(2)
         } else {
-            // No input available - for emulation purposes, store 0 and continue
-            // In a real system, this would pause execution
-            cpu.setRegister(registerIndex, 0)
+            // No queued input - prompt user for interactive input
+            print("Waiting for keyboard input: ")
+            System.out.flush()
+            
+            try {
+                val input = readLine()
+                if (input != null && input.isNotEmpty()) {
+                    // Parse input as hexadecimal number
+                    val hexValue = try {
+                        input.trim().toInt(16)
+                    } catch (e: NumberFormatException) {
+                        // If not valid hex, try as decimal, otherwise use ASCII of first char
+                        try {
+                            input.trim().toInt(10)
+                        } catch (e2: NumberFormatException) {
+                            input[0].code
+                        }
+                    }
+                    // Ensure value fits in 8-bit register (0-255)
+                    cpu.setRegister(registerIndex, hexValue and 0xFF)
+                } else {
+                    // Empty input - store 0
+                    cpu.setRegister(registerIndex, 0)
+                }
+            } catch (e: Exception) {
+                println("Error reading input: ${e.message}")
+                cpu.setRegister(registerIndex, 0)
+            }
+            
             cpu.incrementPC(2)
         }
     }
@@ -230,6 +289,8 @@ class Computer {
         // Reset computer state
         isRunning = false
         instructionsExecuted = 0
+        executionStarted = false
+        hasTerminated = false
         keyboardInputQueue.clear()
         lastExecutionTime = System.currentTimeMillis()
         lastTimerDecrement = System.currentTimeMillis()
@@ -250,7 +311,15 @@ class Computer {
      * @return true if running, false if stopped
      */
     fun isRunning(): Boolean {
-        return isRunning
+        return isRunning && !hasTerminated
+    }
+    
+    /**
+     * Check if the program has terminated
+     * @return true if terminated, false otherwise
+     */
+    fun hasTerminated(): Boolean {
+        return hasTerminated
     }
     
     /**

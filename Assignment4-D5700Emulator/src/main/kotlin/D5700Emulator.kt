@@ -179,7 +179,7 @@ class D5700EmulatorRunner(private val romProgram: IntArray) {
             
             // Set computer to running state and start execution loop
             var shouldContinue = true
-            while (shouldContinue && instructionCount < maxInstructions) {
+            while (shouldContinue && instructionCount < maxInstructions && !computer.hasTerminated()) {
                 try {
                     // Execute one instruction
                     computer.executeInstruction()
@@ -190,6 +190,12 @@ class D5700EmulatorRunner(private val romProgram: IntArray) {
                     if (currentScreenState != lastScreenState) {
                         printScreen("After instruction $instructionCount")
                         lastScreenState = currentScreenState
+                    }
+                    
+                    // Check if program has terminated after execution
+                    if (computer.hasTerminated()) {
+                        println("Program execution completed successfully.")
+                        shouldContinue = false
                     }
                     
                     // Small delay to make execution visible (remove for full speed)
