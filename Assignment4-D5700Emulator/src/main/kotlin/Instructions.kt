@@ -57,8 +57,17 @@ class InstructionFactory {
     }
     
     /**
-     * Get instruction name from opcode (for debugging)
-     * @param opcode instruction opcode (0-15)
+     * Check if an opcode is valid
+     * @param opcode instruction opcode
+     * @return true if valid, false otherwise
+     */
+    fun isValidOpcode(opcode: Int): Boolean {
+        return opcode in 0x0..0xF
+    }
+    
+    /**
+     * Get instruction name for debugging/testing purposes
+     * @param opcode instruction opcode
      * @return instruction name string
      */
     fun getInstructionName(opcode: Int): String {
@@ -81,15 +90,6 @@ class InstructionFactory {
             0xF -> "DRAW"
             else -> "UNKNOWN"
         }
-    }
-    
-    /**
-     * Check if an opcode is valid
-     * @param opcode instruction opcode
-     * @return true if valid, false otherwise
-     */
-    fun isValidOpcode(opcode: Int): Boolean {
-        return opcode in 0x0..0xF
     }
 }
 

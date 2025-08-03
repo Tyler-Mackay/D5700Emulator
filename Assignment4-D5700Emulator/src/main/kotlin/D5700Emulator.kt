@@ -8,8 +8,7 @@ import java.util.Scanner
  * It prompts the user for a ROM file path and executes the program.
  */
 fun main() {
-    println("=== D5700 Computer Emulator ===")
-    println()
+
     
     val scanner = Scanner(System.`in`)
     
@@ -80,8 +79,7 @@ fun runRomFile(romPath: String) {
             return
         }
         
-        println("Loading ROM: $romPath (${romProgram.size} bytes)")
-        println()
+
         
         // Create and run the emulator
         val emulator = D5700EmulatorRunner(romProgram)
@@ -170,13 +168,6 @@ class D5700EmulatorRunner(private val romProgram: IntArray) {
             // Load ROM program
             computer.loadROM(romProgram)
             
-            // Print initial screen state
-            printScreen("Initial State")
-            
-            println("Starting D5700 execution...")
-            println("Press Ctrl+C to stop execution")
-            println()
-            
             // Set computer to running state and start execution loop
             var shouldContinue = true
             while (shouldContinue && instructionCount < maxInstructions && !computer.hasTerminated()) {
@@ -188,13 +179,12 @@ class D5700EmulatorRunner(private val romProgram: IntArray) {
                     // Check if screen has changed
                     val currentScreenState = computer.getScreenOutput()
                     if (currentScreenState != lastScreenState) {
-                        printScreen("After instruction $instructionCount")
+                        printScreen("")
                         lastScreenState = currentScreenState
                     }
                     
                     // Check if program has terminated after execution
                     if (computer.hasTerminated()) {
-                        println("Program execution completed successfully.")
                         shouldContinue = false
                     }
                     
@@ -211,14 +201,6 @@ class D5700EmulatorRunner(private val romProgram: IntArray) {
                 println("Execution stopped: Maximum instruction count reached ($maxInstructions)")
             }
             
-            println()
-            println("Final execution statistics:")
-            println("Instructions executed: $instructionCount")
-            println("Program Counter: 0x${computer.getProgramCounter().toString(16).uppercase()}")
-            
-            // Print final state
-            printScreen("Final State")
-            
         } catch (e: Exception) {
             println("Emulator error: ${e.message}")
         }
@@ -228,7 +210,11 @@ class D5700EmulatorRunner(private val romProgram: IntArray) {
      * Print the current screen state with separators
      */
     private fun printScreen(label: String) {
-        println("======== $label ========")
+        if (label.isNotEmpty()) {
+            println("======== $label ========")
+        } else {
+            println("========")
+        }
         val screenOutput = computer.getScreen().getFormattedDisplay()
         println(screenOutput)
         println("========")

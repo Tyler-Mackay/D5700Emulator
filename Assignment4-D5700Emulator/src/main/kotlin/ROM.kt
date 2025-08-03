@@ -6,7 +6,6 @@
  */
 class ROM(private val size: Int = 4096) { // 4KB default size
     
-    // Internal memory storage
     private val memory = ByteArray(size)
     
     // Flag to indicate if this ROM supports writing (future-proofing)

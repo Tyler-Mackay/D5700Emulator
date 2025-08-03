@@ -71,8 +71,6 @@ class CPU {
             throw IllegalStateException("Program counter must be even: $programCounter")
         }
         
-        // TODO: Implement actual ROM reading when ROM class is available
-        // For now, return a placeholder instruction
         val rom = this.rom ?: throw IllegalStateException("ROM not initialized")
         
         // Check if we can read 2 bytes (current PC and PC+1)
@@ -271,11 +269,7 @@ class CPU {
             // Attempt to write to ROM
             val rom = this.rom ?: throw IllegalStateException("ROM not initialized")
             if (address < rom.size) {
-                // Most ROM chips are read-only, but some future cartridges may be writable
-                // For now, we'll allow writes but log them
-                println("Warning: Writing to ROM address $address with value $value")
-                // TODO: In future, check if ROM chip supports writing
-                rom[address] = value.toByte()
+                throw IllegalStateException("Program terminated: Write operation attempted on ROM address $address")
             }
         } else {
             // Write to RAM
@@ -305,12 +299,10 @@ class CPU {
      * Reset the CPU to initial state
      */
     fun reset() {
-        // Clear all general registers
         for (i in generalRegisters.indices) {
             generalRegisters[i] = 0
         }
         
-        // Reset special registers
         programCounter = 0
         timerRegister = 0
         addressRegister = 0

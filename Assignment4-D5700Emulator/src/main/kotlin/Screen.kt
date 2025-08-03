@@ -22,12 +22,10 @@ class Screen {
      * @param column screen column (0-7)
      */
     fun draw(asciiChar: Int, row: Int, column: Int) {
-        // Validate ASCII character
         if (asciiChar < 0 || asciiChar > 0x7F) {
             throw IllegalArgumentException("ASCII character out of range: $asciiChar (must be 0-127)")
         }
         
-        // Validate screen coordinates
         if (row < 0 || row >= SCREEN_HEIGHT) {
             throw IllegalArgumentException("Screen row out of bounds: $row (must be 0-${SCREEN_HEIGHT-1})")
         }

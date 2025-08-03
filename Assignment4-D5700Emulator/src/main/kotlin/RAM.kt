@@ -6,7 +6,6 @@
  */
 class RAM(private val size: Int = 4096) { // 4KB default size
     
-    // Internal memory storage
     private val memory = ByteArray(size)
     
     /**
