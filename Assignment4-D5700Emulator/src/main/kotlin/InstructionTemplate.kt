@@ -1,15 +1,5 @@
-/**
- * InstructionTemplate - Abstract base class for all D5700 instructions
- * 
- * This class provides the common framework for instruction execution:
- * 1. Parse instruction into operands
- * 2. Validate operands
- * 3. Perform the specific operation
- * 4. Increment program counter (if needed)
- */
 abstract class InstructionTemplate(protected val instruction: Int) {
     
-    // Parsed instruction components
     protected lateinit var parser: InstructionParser
     protected var instructionOpcode: Int = 0
     protected var operand1: Int = 0
@@ -18,7 +8,6 @@ abstract class InstructionTemplate(protected val instruction: Int) {
     protected var byteOperand: Int = 0
     protected var addressOperand: Int = 0
     
-    // Flags for instruction behavior
     protected open val shouldIncrementPC: Boolean = true
     protected open val pcIncrementAmount: Int = 2 // Standard 2-byte increment
     
@@ -92,14 +81,4 @@ abstract class InstructionTemplate(protected val instruction: Int) {
         return "Instruction 0x${instruction.toString(16).uppercase().padStart(4, '0')} " +
                "(${this.javaClass.simpleName})"
     }
-    
-    /**
-     * Get the instruction opcode
-     */
-    fun getOpcode(): Int = instructionOpcode
-    
-    /**
-     * Get the raw instruction value
-     */
-    fun getRawInstruction(): Int = instruction
 }

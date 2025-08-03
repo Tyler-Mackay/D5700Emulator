@@ -1,9 +1,3 @@
-/**
- * Screen Implementation for D5700
- * 
- * The D5700 has an 8x8 ASCII display with 64 bytes of internal RAM
- * that serves as the frame buffer for ASCII characters at each position.
- */
 class Screen {
     
     companion object {
@@ -12,7 +6,7 @@ class Screen {
         const val SCREEN_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT // 64 bytes
     }
     
-    // Frame buffer - 64 bytes of internal RAM for ASCII characters
+    // Frame buffer - 64 bytes of internal RAM
     private val frameBuffer = ByteArray(SCREEN_SIZE) { 0x20 } // Initialize with spaces (0x20)
     
     /**
@@ -36,40 +30,6 @@ class Screen {
         // Calculate frame buffer address from row and column
         val address = row * SCREEN_WIDTH + column
         frameBuffer[address] = asciiChar.toByte()
-    }
-    
-    /**
-     * Get the display output as a formatted string
-     * @return string representation of the 8x8 display
-     */
-    fun getDisplay(): String {
-        val sb = StringBuilder()
-        
-        // Add top border
-        sb.append("╔").append("═".repeat(SCREEN_WIDTH)).append("╗\n")
-        
-        // Add screen content row by row
-        for (row in 0 until SCREEN_HEIGHT) {
-            sb.append("║")
-            for (column in 0 until SCREEN_WIDTH) {
-                val address = row * SCREEN_WIDTH + column
-                val asciiValue = frameBuffer[address].toInt() and 0xFF
-                
-                // Convert ASCII value to character, use space for unprintable characters
-                val char = if (asciiValue in 32..126) {
-                    asciiValue.toChar()
-                } else {
-                    ' ' // Use space for non-printable characters
-                }
-                sb.append(char)
-            }
-            sb.append("║\n")
-        }
-        
-        // Add bottom border
-        sb.append("╚").append("═".repeat(SCREEN_WIDTH)).append("╝")
-        
-        return sb.toString()
     }
     
     /**
@@ -135,15 +95,7 @@ class Screen {
     fun getFrameBufferSize(): Int {
         return SCREEN_SIZE
     }
-    
-    /**
-     * Get direct access to frame buffer array (for debugging)
-     * @return reference to internal frame buffer array
-     */
-    fun getFrameBuffer(): ByteArray {
-        return frameBuffer
-    }
-    
+
     /**
      * Load a pattern or image into the screen
      * @param pattern array of ASCII values to display (max 64 characters)
@@ -172,31 +124,7 @@ class Screen {
     fun getDimensions(): Pair<Int, Int> {
         return Pair(SCREEN_WIDTH, SCREEN_HEIGHT)
     }
-    
-    /**
-     * Get a raw text representation of the screen (without borders)
-     * @return 8x8 grid of characters
-     */
-    fun getRawDisplay(): String {
-        val sb = StringBuilder()
-        for (row in 0 until SCREEN_HEIGHT) {
-            for (column in 0 until SCREEN_WIDTH) {
-                val address = row * SCREEN_WIDTH + column
-                val asciiValue = frameBuffer[address].toInt() and 0xFF
-                val char = if (asciiValue in 32..126) {
-                    asciiValue.toChar()
-                } else {
-                    ' '
-                }
-                sb.append(char)
-            }
-            if (row < SCREEN_HEIGHT - 1) {
-                sb.append('\n')
-            }
-        }
-        return sb.toString()
-    }
-    
+
     /**
      * Get formatted display for D5700 emulator using # for blank spaces
      * @return 8x8 grid with # characters for spaces

@@ -1,21 +1,3 @@
-/**
- * Complete D5700 Instruction Set Implementation
- * 
- * This file contains all 16 D5700 instruction implementations and the factory:
- * Basic: STORE, ADD, SUB, READ, WRITE
- * Control: JUMP, SKIP_EQUAL, SKIP_NOT_EQUAL
- * System: READ_KEYBOARD, SWITCH_MEMORY, SET_A, SET_T, READ_T
- * Special: CONVERT_TO_BASE_10, CONVERT_BYTE_TO_ASCII, DRAW
- */
-
-// === INSTRUCTION FACTORY ===
-
-/**
- * InstructionFactory - Factory class for creating D5700 instruction instances
- * 
- * This factory creates the appropriate instruction object based on the opcode
- * extracted from the 2-byte instruction.
- */
 class InstructionFactory {
     
     /**
@@ -103,12 +85,9 @@ class InstructionFactory {
 class StoreInstruction(instruction: Int) : InstructionTemplate(instruction) {
     
     override fun validateOperands() {
-        // Only validate operand1 as a register index for STORE instruction
-        // operand2 and operand3 are part of the byte value, not registers
         if (operand1 > 7) {
             throw IllegalArgumentException("Invalid register index: r$operand1")
         }
-        // Byte operand is automatically validated by parser (0-255)
     }
     
     override fun performOperation(cpu: CPU) {
@@ -353,12 +332,9 @@ class SetAInstruction(instruction: Int) : InstructionTemplate(instruction) {
 class SetTInstruction(instruction: Int) : InstructionTemplate(instruction) {
     
     override fun validateOperands() {
-        // For SET_T instruction format (B, bb, 0), operand1 and operand2 are part of the byte value
-        // Only validate that operand3 is 0 as specified in the format
         if (operand3 != 0) {
             throw IllegalArgumentException("SET_T instruction format error: operand 3 must be 0")
         }
-        // byteOperand is automatically validated by parser (0-255)
     }
     
     override fun performOperation(cpu: CPU) {
@@ -455,18 +431,15 @@ class ConvertByteToAsciiInstruction(instruction: Int) : InstructionTemplate(inst
 class DrawInstruction(instruction: Int) : InstructionTemplate(instruction) {
     
     override fun validateOperands() {
-        // Only validate operand1 as a register index for DRAW instruction
-        // operand2 and operand3 are literal coordinates (0-7), not registers
         if (operand1 > 7) {
             throw IllegalArgumentException("Invalid register index: r$operand1")
         }
-        // Coordinates are validated in performOperation
     }
     
     override fun performOperation(cpu: CPU) {
         val asciiChar = cpu.getRegister(operand1)
-        val row = operand2  // Use literal coordinate value, not register reference
-        val column = operand3  // Use literal coordinate value, not register reference
+        val row = operand2
+        val column = operand3
         
         if (asciiChar > 0x7F) {
             throw IllegalStateException("Program terminated: DRAW ASCII character out of range: $asciiChar (must be 0-127)")
@@ -477,7 +450,5 @@ class DrawInstruction(instruction: Int) : InstructionTemplate(instruction) {
         if (column > 7) {
             throw IllegalStateException("Program terminated: DRAW column out of bounds: $column (must be 0-7)")
         }
-        
-        // This is handled by the Computer class for proper screen access
     }
 }

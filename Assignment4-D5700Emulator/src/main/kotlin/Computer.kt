@@ -1,52 +1,27 @@
-/**
- * Computer - Main D5700 Computer System Implementation
- * 
- * This class orchestrates all components of the D5700 computer:
- * - CPU with all registers and instruction execution
- * - 4KB RAM for data storage
- * - 4KB ROM for program storage
- * - 8x8 ASCII Screen display
- * - Timer for timing operations
- * - Keyboard input simulation
- * 
- * The computer runs at 500Hz (500 instructions per second)
- */
 class Computer {
-    
-    // === COMPONENT COMPOSITION ===
     
     private val ram: RAM = RAM(4096)  // 4KB RAM
     private val rom: ROM = ROM(4096)  // 4KB ROM  
     private val screen: Screen = Screen()
     private val cpu: CPU = CPU()
-    // Note: Timer is just the CPU's T register - no separate Timer class needed
-    
-    // === COMPUTER STATE ===
-    
+
     private var isRunning: Boolean = false
     private var programLoaded: Boolean = false
     private var programSize: Int = 0
     private var executionStarted: Boolean = false
     private var hasTerminated: Boolean = false
     
-    // Keyboard input simulation (simple queue)
     private val keyboardInputQueue = mutableListOf<Int>()
     
-    // Execution statistics
     private var instructionsExecuted: Long = 0
     private var lastExecutionTime: Long = System.currentTimeMillis()
     
-    // Timer simulation - decrement at 60Hz per D5700 specification
     private var lastTimerDecrement: Long = System.currentTimeMillis()
-    
-    // === INITIALIZATION ===
     
     init {
         // Initialize CPU with RAM and ROM references
         cpu.initialize(ram.getMemoryArray(), rom.getMemoryArray())
     }
-    
-    // === PUBLIC INTERFACE METHODS ===
     
     /**
      * Load ROM data into the computer
@@ -79,24 +54,22 @@ class Computer {
         }
         
         try {
-            // Mark that execution has started (for termination detection)
+            // Mark that execution has started
             if (!executionStarted) {
                 executionStarted = true
             }
             
-            // Check for program termination condition: PC == 0 after execution started
+            // Check for program termination condition
             if (executionStarted && cpu.getPC() == 0 && instructionsExecuted > 0) {
                 hasTerminated = true
                 throw IllegalStateException("Program terminated: PC reached 0")
             }
-            
-            // Check if PC is beyond the loaded program size
+
             if (cpu.getPC() >= programSize) {
                 hasTerminated = true
                 throw IllegalStateException("Program terminated: PC beyond program bounds (PC: ${cpu.getPC()}, Program size: $programSize)")
             }
-            
-            // Timer decrements at 60Hz as per D5700 specification: "decrements the value by 1 at 60hz (every 16ms)"
+
             val currentTime = System.currentTimeMillis()
             val timerValue = cpu.getTimerRegister()
             
@@ -144,7 +117,7 @@ class Computer {
         val parser = InstructionParser(instruction)
         val registerIndex = parser.getFirstOperand()
         
-        // Check if we have queued input first
+        // Check if have queued input first
         val queuedInput = readKeyboard()
         
         if (queuedInput >= 0) {
@@ -163,7 +136,6 @@ class Computer {
                     val hexValue = try {
                         input.trim().toInt(16)
                     } catch (e: NumberFormatException) {
-                        // If not valid hex, try as decimal, otherwise use ASCII of first char
                         try {
                             input.trim().toInt(10)
                         } catch (e2: NumberFormatException) {
@@ -173,7 +145,6 @@ class Computer {
                     // Ensure value fits in 8-bit register (0-255)
                     cpu.setRegister(registerIndex, hexValue and 0xFF)
                 } else {
-                    // Empty input - store 0
                     cpu.setRegister(registerIndex, 0)
                 }
             } catch (e: Exception) {
@@ -200,10 +171,9 @@ class Computer {
         // Set the CPU timer register (T register)
         cpu.setTimerRegister(timerValue)
         
-        // Reset timer timestamp 
+        // Reset timer
         lastTimerDecrement = System.currentTimeMillis()
-        
-        // Increment PC
+
         cpu.incrementPC(2)
     }
     
@@ -217,10 +187,9 @@ class Computer {
         val columnReg = parser.getThirdOperand()
         
         val asciiChar = cpu.getRegister(asciiCharReg)
-        val row = rowReg  // Use literal coordinate value, not register reference
-        val column = columnReg  // Use literal coordinate value, not register reference
-        
-        // Validate parameters
+        val row = rowReg
+        val column = columnReg
+
         if (asciiChar > 0x7F) {
             throw IllegalStateException("Program terminated: DRAW ASCII character out of range: $asciiChar (must be 0-127)")
         }
@@ -235,47 +204,7 @@ class Computer {
         screen.draw(asciiChar, row, column)
         cpu.incrementPC(2) // Increment PC manually
     }
-    
-    /**
-     * Run the computer continuously
-     * Executes instructions at approximately 500Hz until stopped
-     */
-    fun run() {
-        if (!programLoaded) {
-            throw IllegalStateException("No program loaded in ROM")
-        }
-        
-        isRunning = true
-        println("D5700 Computer starting execution...")
-        
-        val targetExecutionTimeMs = 0.1 // Much faster execution for demo purposes
-        
-        while (isRunning) {
-            try {
-                val startTime = System.currentTimeMillis()
-                
-                // Execute one instruction
-                executeInstruction()
-                
-                // Calculate sleep time to maintain 500Hz
-                val executionTime = System.currentTimeMillis() - startTime
-                val sleepTime = (targetExecutionTimeMs - executionTime).toLong()
-                
-                if (sleepTime > 0) {
-                    Thread.sleep(sleepTime)
-                }
-                
-                // Optional: Add breakpoints or debugging here
-                
-            } catch (e: Exception) {
-                println("Computer stopped due to error: ${e.message}")
-                isRunning = false
-            }
-        }
-        
-        println("D5700 Computer execution stopped.")
-    }
-    
+
     /**
      * Reset the computer to initial state
      */
@@ -303,7 +232,7 @@ class Computer {
      * @return formatted string representation of the 8x8 display
      */
     fun getScreenOutput(): String {
-        return screen.getDisplay()
+        return screen.getFormattedDisplay()
     }
     
     /**
@@ -351,16 +280,7 @@ class Computer {
             -1 // No input available
         }
     }
-    
-    // === ADDITIONAL CONTROL METHODS ===
-    
-    /**
-     * Stop the computer execution
-     */
-    fun stop() {
-        isRunning = false
-    }
-    
+
     /**
      * Add keyboard input to the input queue (for simulation)
      * @param hexValue hex digit value (0-15)
@@ -402,23 +322,7 @@ class Computer {
     fun getProgramCounter(): Int {
         return cpu.getPC()
     }
-    
-    /**
-     * Get the current address register value
-     * @return current address register value
-     */
-    fun getAddressRegister(): Int {
-        return cpu.getAddressRegister()
-    }
-    
-    /**
-     * Get the current memory flag state
-     * @return true for ROM operations, false for RAM operations
-     */
-    fun getMemoryFlag(): Boolean {
-        return cpu.getMemoryFlag()
-    }
-    
+
     /**
      * Check if a program is loaded
      * @return true if program is loaded, false otherwise
@@ -426,18 +330,7 @@ class Computer {
     fun isProgramLoaded(): Boolean {
         return programLoaded
     }
-    
-    /**
-     * Get execution statistics
-     * @return string with execution statistics
-     */
-    fun getExecutionStats(): String {
-        val runtime = System.currentTimeMillis() - lastExecutionTime
-        return "Instructions executed: $instructionsExecuted\n" +
-               "Runtime: ${runtime}ms\n" +
-               "Average speed: ${if (runtime > 0) instructionsExecuted * 1000 / runtime else 0} Hz"
-    }
-    
+
     /**
      * Get a comprehensive system status
      * @return detailed system status string  
@@ -455,12 +348,10 @@ class Computer {
         sb.append("Timer (T register): ${cpu.getTimerRegister()}")
         sb.append("\n\n")
         sb.append("Screen Output:\n")
-        sb.append(screen.getDisplay())
+        sb.append(screen.getFormattedDisplay())
         
         return sb.toString()
     }
-    
-    // === MEMORY DEBUGGING METHODS ===
     
     /**
      * Read from RAM at specified address (for debugging)

@@ -137,7 +137,10 @@ class InstructionSystemTest {
     @Test
     fun `test READ instruction - reads from memory`() {
         cpu.setAddressRegister(0x100)
-        cpu.setMemoryFlag(false) // RAM mode
+        // Ensure RAM mode
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         ram[0x100] = 0x42.toByte()
         
         val instruction = factory.createInstruction(0x3500) // READ from memory into r5
@@ -149,7 +152,10 @@ class InstructionSystemTest {
     @Test
     fun `test READ instruction from ROM`() {
         cpu.setAddressRegister(0x200)
-        cpu.setMemoryFlag(true) // ROM mode
+        // Ensure ROM mode
+        if (!cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         rom[0x200] = 0x33.toByte()
         
         val instruction = factory.createInstruction(0x3400) // READ from ROM into r4
@@ -162,7 +168,10 @@ class InstructionSystemTest {
     fun `test WRITE instruction - writes to memory`() {
         cpu.setRegister(3, 0x55)
         cpu.setAddressRegister(0x150)
-        cpu.setMemoryFlag(false) // RAM mode
+        // Ensure RAM mode
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         val instruction = factory.createInstruction(0x4300) // WRITE r3 to memory
         instruction.execute(cpu)
@@ -236,7 +245,10 @@ class InstructionSystemTest {
     
     @Test
     fun `test SWITCH_MEMORY instruction`() {
-        cpu.setMemoryFlag(false) // Start with RAM
+        // Start with RAM
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         val instruction = factory.createInstruction(0x7000) // SWITCH_MEMORY
         instruction.execute(cpu)
@@ -279,7 +291,10 @@ class InstructionSystemTest {
     fun `test CONVERT_TO_BASE_10 instruction`() {
         cpu.setRegister(2, 123) // Store decimal 123
         cpu.setAddressRegister(0x300)
-        cpu.setMemoryFlag(false) // RAM mode
+        // Ensure RAM mode
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         val instruction = factory.createInstruction(0xD200) // CONVERT_TO_BASE_10 r2
         instruction.execute(cpu)
@@ -293,7 +308,10 @@ class InstructionSystemTest {
     fun `test CONVERT_TO_BASE_10 instruction with 255`() {
         cpu.setRegister(1, 255) // Store decimal 255
         cpu.setAddressRegister(0x400)
-        cpu.setMemoryFlag(false) // RAM mode
+        // Ensure RAM mode
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         val instruction = factory.createInstruction(0xD100) // CONVERT_TO_BASE_10 r1
         instruction.execute(cpu)
@@ -449,7 +467,10 @@ class InstructionSystemTest {
         rom[7] = 0x00.toByte()  // READ from memory into r1
         
         cpu.setPC(0)
-        cpu.setMemoryFlag(false) // RAM mode
+        // Ensure RAM mode
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         // Execute SET_A
         cpu.executeInstruction()

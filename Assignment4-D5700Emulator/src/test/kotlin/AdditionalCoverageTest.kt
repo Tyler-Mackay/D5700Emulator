@@ -121,7 +121,6 @@ class AdditionalCoverageTest {
         assertFalse(computer.hasTerminated())
         assertEquals(0, computer.getProgramCounter())
         assertEquals(0, computer.getTimerValue())
-        assertFalse(computer.getMemoryFlag())
     }
     
     @Test

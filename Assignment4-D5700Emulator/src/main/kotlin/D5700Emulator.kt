@@ -1,26 +1,16 @@
 import java.io.File
 import java.util.Scanner
 
-/**
- * D5700 Computer Emulator - Main Entry Point
- * 
- * This is the main application that runs D5700 ROM files.
- * It prompts the user for a ROM file path and executes the program.
- */
 fun main() {
 
     
     val scanner = Scanner(System.`in`)
     
     try {
-        // Prompt for ROM file path - wait for user input
         print("Type in the path to a rom file: ")
-        System.out.flush() // Force the prompt to appear
-        
-        // Read input line
+        System.out.flush()
         val romPath = scanner.nextLine().trim()
         
-        // Check if user wants to exit
         if (romPath.lowercase() in listOf("exit", "quit", "q")) {
             println("Goodbye!")
             return
@@ -35,11 +25,6 @@ fun main() {
         
     } catch (e: Exception) {
         println("Input error: ${e.message}")
-        println()
-        println("If you're having console input issues:")
-        println("1. Try the terminal: ./gradlew run")
-        println("2. Or use 'D5700 Console Version' run configuration")
-        println("3. Or use 'D5700 Simple (Auto)' for testing without input")
     } finally {
         scanner.close()
     }
@@ -65,12 +50,10 @@ fun runRomFile(romPath: String) {
             return
         }
         
-        // Read ROM data - handle both binary and hex text formats
+        // Read ROM data
         val romProgram = if (romPath.endsWith(".d5700")) {
-            // Hex text format (like existing ROM files)
             loadHexRomFile(romFile)
         } else {
-            // Binary format
             loadBinaryRomFile(romFile)
         }
         
@@ -79,9 +62,6 @@ fun runRomFile(romPath: String) {
             return
         }
         
-
-        
-        // Create and run the emulator
         val emulator = D5700EmulatorRunner(romProgram)
         emulator.run()
         
@@ -101,9 +81,11 @@ fun loadHexRomFile(romFile: File): IntArray {
         for (line in lines) {
             val trimmedLine = line.trim()
             if (trimmedLine.isNotEmpty() && !trimmedLine.startsWith("#")) {
-                // Parse hex instruction (4 hex chars = 2 bytes)
+
+                // Parse hex instruction
                 if (trimmedLine.length == 4) {
                     val instruction = trimmedLine.toInt(16)
+
                     // Split into two bytes
                     val firstByte = (instruction shr 8) and 0xFF
                     val secondByte = instruction and 0xFF
@@ -188,7 +170,7 @@ class D5700EmulatorRunner(private val romProgram: IntArray) {
                         shouldContinue = false
                     }
                     
-                    // Small delay to make execution visible (remove for full speed)
+                    // Small delay to make execution visible
                     Thread.sleep(1)
                     
                 } catch (e: Exception) {

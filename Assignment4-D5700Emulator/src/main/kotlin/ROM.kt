@@ -1,9 +1,3 @@
-/**
- * ROM (Read-Only Memory) Implementation for D5700
- * 
- * The D5700 reads programs from 4KB ROM cartridges.
- * ROM is typically read-only, but some future cartridges may support writing.
- */
 class ROM(private val size: Int = 4096) { // 4KB default size
     
     private val memory = ByteArray(size)
@@ -115,14 +109,7 @@ class ROM(private val size: Int = 4096) { // 4KB default size
     fun getMemoryArray(): ByteArray {
         return memory
     }
-    
-    /**
-     * Clear all ROM contents to zero
-     */
-    fun clear() {
-        memory.fill(0)
-    }
-    
+
     /**
      * Get a string representation of ROM contents (for debugging)
      * Shows first 256 bytes in hex format

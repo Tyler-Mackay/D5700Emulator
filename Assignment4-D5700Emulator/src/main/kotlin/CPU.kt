@@ -1,18 +1,4 @@
-/**
- * D5700 CPU Implementation
- * 
- * Features:
- * - 8 general purpose 8-bit registers (r0-r7)
- * - Program Counter (P) - 16-bit register
- * - Timer (T) - 8-bit register
- * - Address (A) - 16-bit register  
- * - Memory flag (M) - single bit (0 for RAM, 1 for ROM)
- * - 500Hz execution speed
- * - 4KB RAM and ROM
- */
 class CPU {
-    
-    // === REGISTERS ===
     
     // General purpose registers (r0-r7) - 8-bit each
     private val generalRegisters = IntArray(8) { 0 }
@@ -29,14 +15,9 @@ class CPU {
     // Memory flag (M) - determines RAM (0) or ROM (1) operations
     private var memoryFlag: Boolean = false
     
-    // === MEMORY REFERENCES ===
-    // These will be injected later when we create RAM and ROM classes
     private var ram: ByteArray? = null
     private var rom: ByteArray? = null
     
-    // === CPU CONTROL METHODS ===
-    
-    // Instruction factory for creating instruction instances
     private val instructionFactory = InstructionFactory()
     
     /**
@@ -66,7 +47,7 @@ class CPU {
      * @return 16-bit instruction as integer
      */
     fun fetchInstruction(): Int {
-        // Ensure PC is even (instructions are 2 bytes)
+        // Ensure PC is even
         if (programCounter % 2 != 0) {
             throw IllegalStateException("Program counter must be even: $programCounter")
         }
@@ -84,8 +65,6 @@ class CPU {
         
         return (firstByte shl 8) or secondByte
     }
-    
-    // === PROGRAM COUNTER METHODS ===
     
     /**
      * Get the current program counter value
@@ -121,8 +100,6 @@ class CPU {
         programCounter = newPC
     }
     
-    // === GENERAL REGISTER METHODS ===
-    
     /**
      * Get the value from a general purpose register
      * @param index register index (0-7 for r0-r7)
@@ -150,8 +127,6 @@ class CPU {
         generalRegisters[index] = value
     }
     
-    // === ADDRESS REGISTER METHODS ===
-    
     /**
      * Get the current address register value
      * @return address register value (0-65535)
@@ -170,8 +145,6 @@ class CPU {
         }
         addressRegister = address
     }
-    
-    // === TIMER REGISTER METHODS ===
     
     /**
      * Get the current timer register value
@@ -192,10 +165,6 @@ class CPU {
         timerRegister = value
     }
     
-
-    
-    // === MEMORY FLAG METHODS ===
-    
     /**
      * Get the current memory flag state
      * @return true for ROM operations, false for RAM operations
@@ -210,16 +179,6 @@ class CPU {
     fun toggleMemoryFlag() {
         memoryFlag = !memoryFlag
     }
-    
-    /**
-     * Set the memory flag explicitly
-     * @param isROM true for ROM operations, false for RAM operations
-     */
-    fun setMemoryFlag(isROM: Boolean) {
-        memoryFlag = isROM
-    }
-    
-    // === MEMORY ACCESS METHODS ===
     
     /**
      * Read a byte from memory at the specified address
@@ -280,8 +239,6 @@ class CPU {
         }
     }
     
-    // === INITIALIZATION METHODS ===
-    
     /**
      * Initialize the CPU with RAM and ROM references
      * @param ram 4KB RAM array
@@ -291,7 +248,6 @@ class CPU {
         this.ram = ram
         this.rom = rom
         
-        // Reset CPU state
         reset()
     }
     

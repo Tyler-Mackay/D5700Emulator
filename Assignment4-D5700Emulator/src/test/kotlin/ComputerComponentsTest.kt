@@ -136,7 +136,7 @@ class ComputerComponentsTest {
         assertEquals(0x43, screen.getCharAt(7, 7))
         
         // Verify display contains the characters
-        val display = screen.getDisplay()
+        val display = screen.getFormattedDisplay()
         assertTrue(display.contains("A"))
     }
     

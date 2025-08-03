@@ -192,11 +192,16 @@ class CPUTest {
         cpu.toggleMemoryFlag()
         assertFalse(cpu.getMemoryFlag(), "Memory flag should be false (RAM) after second toggle")
         
-        // Test explicit setting
-        cpu.setMemoryFlag(true)
+        // Test setting to ROM (true)
+        if (!cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         assertTrue(cpu.getMemoryFlag(), "Memory flag should be true (ROM)")
         
-        cpu.setMemoryFlag(false)
+        // Test setting to RAM (false)
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         assertFalse(cpu.getMemoryFlag(), "Memory flag should be false (RAM)")
     }
     
@@ -205,7 +210,9 @@ class CPUTest {
     @Test
     fun `test RAM read and write operations`() {
         // Ensure we're in RAM mode
-        cpu.setMemoryFlag(false)
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         // Test writing and reading from RAM
         cpu.writeMemory(0x100, 0x42)
@@ -226,7 +233,9 @@ class CPUTest {
         rom[0x200] = 0x34.toByte()
         
         // Switch to ROM mode
-        cpu.setMemoryFlag(true)
+        if (!cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         // Test reading from ROM
         assertEquals(0x12, cpu.readMemory(0x100))
@@ -258,10 +267,16 @@ class CPUTest {
     @Test
     fun `test memory access beyond array bounds returns zero`() {
         // Test reading beyond RAM/ROM size returns 0
-        cpu.setMemoryFlag(false) // RAM mode
+        // Ensure RAM mode
+        if (cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         assertEquals(0, cpu.readMemory(0x2000)) // Beyond 4KB RAM
         
-        cpu.setMemoryFlag(true) // ROM mode
+        // Switch to ROM mode
+        if (!cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         assertEquals(0, cpu.readMemory(0x2000)) // Beyond 4KB ROM
     }
     
@@ -321,7 +336,9 @@ class CPUTest {
         cpu.setPC(0x1000)
         cpu.setTimerRegister(0x50)
         cpu.setAddressRegister(0x2000)
-        cpu.setMemoryFlag(true)
+        if (!cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         // Reset CPU
         cpu.reset()
@@ -345,7 +362,9 @@ class CPUTest {
         cpu.setPC(0x1000)
         cpu.setTimerRegister(0x56)
         cpu.setAddressRegister(0x2000)
-        cpu.setMemoryFlag(true)
+        if (!cpu.getMemoryFlag()) {
+            cpu.toggleMemoryFlag()
+        }
         
         val stateString = cpu.getStateString()
         

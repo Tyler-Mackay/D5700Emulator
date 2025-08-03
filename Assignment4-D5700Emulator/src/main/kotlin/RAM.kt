@@ -1,9 +1,3 @@
-/**
- * RAM (Random Access Memory) Implementation for D5700
- * 
- * The D5700 has 4KB of RAM for storing data and variables.
- * RAM is volatile memory that can be read from and written to.
- */
 class RAM(private val size: Int = 4096) { // 4KB default size
     
     private val memory = ByteArray(size)
